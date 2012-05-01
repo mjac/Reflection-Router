@@ -1,8 +1,8 @@
 <?php
 
-namespace HttpInterface;
+namespace ReflectionRouter;
 
-require_once '../HttpInterface.php';
+require_once '../ReflectionRouter.php';
 require_once 'RegisterExample.php';
 require_once 'MessageExample.php';
 
@@ -13,11 +13,11 @@ class ActionMapTest extends \PHPUnit_Framework_TestCase {
 	}
 
 	public function testClassExistsRegister() {
-		return new ActionMap('HttpInterface\RegisterExample');
+		return new ActionMap('ReflectionRouter\RegisterExample');
 	}
 
 	public function testClassExistsMessage() {
-		return new ActionMap('HttpInterface\MessageExample');
+		return new ActionMap('ReflectionRouter\MessageExample');
 	}
 
 	/**

@@ -1,8 +1,8 @@
 <?php
 
-namespace HttpInterface;
+namespace ReflectionRouter;
 
-require_once '../HttpInterface.php';
+require_once '../ReflectionRouter.php';
 require_once 'MessageExample.php';
 
 class InputTest extends \PHPUnit_Framework_TestCase {

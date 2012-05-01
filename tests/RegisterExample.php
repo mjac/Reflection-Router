@@ -1,6 +1,6 @@
 <?php
 
-namespace HttpInterface;
+namespace ReflectionRouter;
 
 class RegisterExample {
 	public function form() {

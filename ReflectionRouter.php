@@ -1,6 +1,6 @@
 <?php
 
-namespace HttpInterface;
+namespace ReflectionRouter;
 
 class Input {
 	public function __construct($moduleParam, $actionParam) {
