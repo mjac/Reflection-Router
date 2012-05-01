@@ -2,28 +2,79 @@
 
 namespace ReflectionRouter;
 
-class Input {
-	public function __construct($moduleParam, $actionParam) {
+class Router {
+	private $namespace = '\\';
 
+	private $moduleParam;
+	private $actionParam;
+
+	public function __construct($moduleParam, $actionParam) {
+		$this->moduleParam = $moduleParam;
+		$this->actionParam = $actionParam;
 	}
 
-	public function dispatch() {
+	public function setNamespace($namespace) {
+		if (strpos('\\', $namespace) !== 0) {
+			$namespace = '\\' . $namespace;
+		}
 
+		$this->namespace = $namespace;
+	}
+
+	public function dispatch(array $input) {
+		if (!isset($input[$this->moduleParam])) {
+			throw new ModuleNotSpecifiedException(); 
+		}
+
+		if (!isset($input[$this->actionParam])) {
+			throw new ActionNotSpecifiedException(); 
+		}
+
+		$action = new Action($this->namespace);
+		return $action->perform($input[$this->moduleParam], $input[$this->actionParam], $input);
 	}
 }
 
 class Action {
-	public function dispatch() {
-		// validate that name is a valid classname
-		if (!class_exists($namespaceBase . $module)) {
-			// exception
+	private $namespace;
+
+	public function __construct($namespace) {
+		$this->namespace = $namespace;
+	}
+
+	private function perform($module, $action, array $input) {
+		$targetClass = $this->namespace . '\\' . $module;
+
+		try {
+			$actionMap = new ActionMap($targetClass);
+		} catch(\ReflectionException $e) {
+			throw new ModuleNotFoundException($module, $targetClass);
 		}
 
-		// reflect class to get constructor and check action exists
-		// construct using input variables (often a file will always have certain inputs)
+		$constructorParams = $actionMap->getModuleParams($input);
+		if ($constructorParams === NULL) {
+			throw new ModuleParamsIncorrectException();
+		}
 
-		// call action on class with other input variables
-		// otherwise return nothing
+		try {
+			$actionParams = $actionMap->getActionParams($action, $input);
+		} catch (\ReflectionException $e) {
+			throw new ActionNotFoundException();
+		}
+
+		if ($actionParams === NULL) {
+			throw new ActionParamsIncorrectException();
+		}
+		
+		$module = call_user_func_array( 
+			array( 
+				new \ReflectionClass($className),
+				'newInstance' 
+			), 
+			$constructorParams 
+		); 
+
+		return call_user_func_array(array($module, $action), $actionParams);
 	}
 }
 
@@ -93,6 +144,25 @@ interface ActionParamExtended extends ActionParam {
 	public function hasDefault();
 	public function getDefault();
 }
+
+class Exception extends \Exception {
+}
+
+class ModuleNotFoundException extends Exception {
+}
+
+class ActionNotFoundException extends Exception {
+}
+
+class ParamsIncorrectException extends Exception {
+}
+
+class ActionParamsIncorrectException extends ParamsIncorrectException  {
+}
+
+class ModuleParamsIncorrectException extends ParamsIncorrectException {
+}
+
 
 /*getName
 ReflectionParameter::getClass
