@@ -3,31 +3,24 @@
 namespace ReflectionRouter;
 
 class Router {
-	private $namespace = '\\';
+	private $namespace = '';
 
 	private $moduleParam;
 	private $actionParam;
 
-	public function __construct($moduleParam, $actionParam) {
+	public function __construct($moduleParam, $actionParam, $namespace = '') {
 		$this->moduleParam = $moduleParam;
 		$this->actionParam = $actionParam;
-	}
-
-	public function setNamespace($namespace) {
-		if (strpos('\\', $namespace) !== 0) {
-			$namespace = '\\' . $namespace;
-		}
-
 		$this->namespace = $namespace;
 	}
 
 	public function dispatch(array $input) {
 		if (!isset($input[$this->moduleParam])) {
-			throw new ModuleNotSpecifiedException(); 
+			throw new ModuleNotSpecifiedException($this->moduleParam); 
 		}
 
 		if (!isset($input[$this->actionParam])) {
-			throw new ActionNotSpecifiedException(); 
+			throw new ActionNotSpecifiedException($this->actionParam); 
 		}
 
 		$action = new Action($this->namespace);
@@ -42,7 +35,7 @@ class Action {
 		$this->namespace = $namespace;
 	}
 
-	private function perform($module, $action, array $input) {
+	public function perform($module, $action, array $input = array()) {
 		$targetClass = $this->namespace . '\\' . $module;
 
 		try {
@@ -53,22 +46,22 @@ class Action {
 
 		$constructorParams = $actionMap->getModuleParams($input);
 		if ($constructorParams === NULL) {
-			throw new ModuleParamsIncorrectException();
+			throw new ModuleParamsIncorrectException($module, $targetClass);
 		}
 
 		try {
 			$actionParams = $actionMap->getActionParams($action, $input);
 		} catch (\ReflectionException $e) {
-			throw new ActionNotFoundException();
+			throw new ActionNotFoundException($module, $action, $targetClass);
 		}
 
 		if ($actionParams === NULL) {
-			throw new ActionParamsIncorrectException();
+			throw new ActionParamsIncorrectException($module, $action, $targetClass);
 		}
 		
 		$module = call_user_func_array( 
 			array( 
-				new \ReflectionClass($className),
+				new \ReflectionClass($targetClass),
 				'newInstance' 
 			), 
 			$constructorParams 
@@ -168,25 +161,44 @@ interface ActionParamExtended extends ActionParam {
 }
 
 class Exception extends \Exception {
+	public function __construct($message, \Exception $e = NULL) {
+		parent::__construct($message, 0, $e);
+	}
+}
+
+class ModuleNotSpecifiedException extends Exception {
+	public function __construct($moduleParam, \Exception $e = NULL) {
+		parent::__construct("Module was not provided in parameter <$moduleParam>", $e);
+	}
+}
+
+class ActionNotSpecifiedException extends Exception {
+	public function __construct($actionParam, \Exception $e = NULL) {
+		parent::__construct("Action was not provided in parameter <$actionParam>", $e);
+	}
 }
 
 class ModuleNotFoundException extends Exception {
+	public function __construct($module, $targetClass, \Exception $e = NULL) {
+		parent::__construct("Module <$module> not found, attempted to load <$targetClass>", $e);
+	}
 }
 
 class ActionNotFoundException extends Exception {
+	public function __construct($action, $module, $targetClass, \Exception $e = NULL) {
+		parent::__construct("Action <$action> not found in module <$module> with full reference <$targetClass>", $e);
+	}
 }
 
-class ParamsIncorrectException extends Exception {
+class ActionParamsIncorrectException extends Exception {
+	public function __construct($action, $module, $targetClass, \Exception $e = NULL) {
+		parent::__construct("Parameters are incorrect for action <$action> in module <$module> with full reference <$targetClass>", $e);
+	}
 }
 
-class ActionParamsIncorrectException extends ParamsIncorrectException  {
+class ModuleParamsIncorrectException extends Exception {
+	public function __construct($module, $targetClass, \Exception $e = NULL) {
+		parent::__construct("Parameters are incorrect for module <$module> with full reference <$targetClass>", $e);
+	}
 }
 
-class ModuleParamsIncorrectException extends ParamsIncorrectException {
-}
-
-
-/*getName
-ReflectionParameter::getClass
-ReflectionParameter::getDefaultValue
-ReflectionParameter::isDefaultValueAvailable*/

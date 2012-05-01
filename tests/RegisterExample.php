@@ -8,7 +8,7 @@ class RegisterExample {
 	}
 
 	public function submit(EmailAddressExample $email) {
-
+		return $email;
 	}
 
 	public function name($name = 'Anonymous') {
@@ -20,11 +20,12 @@ class RegisterExample {
 	}
 
 	public function colorscheme(ColorSchemeExample $color) {
+		return $color;
 	}
 }
 
 class EmailAddressExample implements ActionParam {
-	private $email;
+	public $email;
 
 	public function __construct($email) {
 		$this->email = $email;
