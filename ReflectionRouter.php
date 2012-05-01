@@ -85,36 +85,58 @@ class ActionMap {
 		$this->reflectedClass = new \ReflectionClass($className);
 	}
 
+	/**
+	 * Using array_key_exists to allow for NULL input
+	 */
 	private function getMethodParams(\ReflectionMethod $reflectedMethod, $input) {
 		$methodParams = array();
 		foreach ($reflectedMethod->getParameters() as $reflectedParam) {
 			$paramName = $reflectedParam->getName();
 			$hasDefault = $reflectedParam->isDefaultValueAvailable();
 
-			if (isset($input[$paramName])) {
-				$inputValue = $input[$paramName];
+			if (array_key_exists($paramName, $input)) {
+				$methodParams[$paramName] = $input[$paramName];
+				if ($hasDefault) {
+					$defaultType = gettype($reflectedParam->getDefaultValue());
+					// Cannot determine param type if default is NULL
+					if ($defaultType !== 'NULL') {
+						settype($methodParams[$paramName], $defaultType);
+					}
+				}
 			} elseif ($hasDefault) {
 				$methodParams[$paramName] = $reflectedParam->getDefaultValue();
 				continue;
-			} else {
-				return NULL;
 			}
 
 			$paramClass = $reflectedParam->getClass();
 			if ($paramClass instanceof \ReflectionClass) {
 				$paramClassName = $paramClass->getName();
-				$inputValue = new $paramClassName($inputValue);
 
-				/*
-				if ($inputValue instanceof ActionParamExtended) {
-					// Put this in separate method to allow section above with hasDefault to consider the case when the class hint type has a default value
-				} elseif ($inputValue instanceof ActionParam && !$inputValue->isValid()) {
-					continue;
+				// Attempt to get default object if type hinted 
+				// with extended param interface
+				if (!array_key_exists($paramName, $input)) {
+					if ($paramClass->implementsInterface('ReflectionRouter\\ActionParamExtended') && $paramClassName::hasDefaultValue()) {
+						$methodParams[$paramName] = $paramClassName::getDefaultValue();
+					} else {
+						// Missing and no default
+						return NULL;
+					}
 				}
-				*/
+
+				// Create param according to type hint and determine
+				// if it is valid
+				$paramObject = new $paramClassName($methodParams[$paramName]);
+				if ($paramObject instanceof ActionParam && !$paramObject->isValid()) {
+					// Object param is not valid
+					return NULL;
+				}
+
+				$methodParams[$paramName] = $paramObject;
 			}
 
-			$methodParams[$paramName] = $inputValue;
+			if (!array_key_exists($paramName, $methodParams)) {
+				return NULL;
+			}
 		}
 
 		return $methodParams;
@@ -141,8 +163,8 @@ interface ActionParam {
 }
 
 interface ActionParamExtended extends ActionParam {
-	public function hasDefault();
-	public function getDefault();
+	public function hasDefaultValue();
+	public function getDefaultValue();
 }
 
 class Exception extends \Exception {

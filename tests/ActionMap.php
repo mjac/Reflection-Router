@@ -47,7 +47,7 @@ class ActionMapTest extends \PHPUnit_Framework_TestCase {
 
 		$this->assertInternalType('array', $params);
 		$this->assertArrayHasKey('ownerId', $params);
-		$this->assertEquals($params['ownerId'], 6);
+		$this->assertSame($params['ownerId'], 6);
 	}
 
 
@@ -88,7 +88,7 @@ class ActionMapTest extends \PHPUnit_Framework_TestCase {
 			'notused' => 'NOTUSED',
 		));
 
-		$this->assertEquals(array(
+		$this->assertSame(array(
 			'title' => 'TITLE',
 			'message' => 'MESSAGE',	
 		), $params);
@@ -100,7 +100,7 @@ class ActionMapTest extends \PHPUnit_Framework_TestCase {
 	public function testActionDefaultNecessary(ActionMap $actionMap) {
 		$params = $actionMap->getActionParams('delete');
 
-		$this->assertEquals(array(
+		$this->assertSame(array(
 			'id' => NULL,
 		), $params);
 	}
@@ -113,7 +113,7 @@ class ActionMapTest extends \PHPUnit_Framework_TestCase {
 			'id' => 5,
 		));
 
-		$this->assertEquals(array(
+		$this->assertSame(array(
 			'id' => 5,
 		), $params);
 	}
@@ -127,7 +127,7 @@ class ActionMapTest extends \PHPUnit_Framework_TestCase {
 			'title' => 't',
 		));
 
-		$this->assertEquals(array(
+		$this->assertSame(array(
 			'title' => 't',
 			'message' => 'm',
 		), $params);
@@ -144,7 +144,7 @@ class ActionMapTest extends \PHPUnit_Framework_TestCase {
 		$this->assertInternalType('array', $params);
 		$this->assertArrayHasKey('file', $params);
 		$this->assertInstanceOf('\\SplFileInfo', $params['file']);
-		$this->assertEquals('ActionMap.php', $params['file']->getPathname());
+		$this->assertSame('ActionMap.php', $params['file']->getPathname());
 	}
 
 	/**
@@ -153,8 +153,82 @@ class ActionMapTest extends \PHPUnit_Framework_TestCase {
 	public function testActionNativeClassHintDefault(ActionMap $actionMap) {
 		$params = $actionMap->getActionParams('load');
 
-		$this->assertEquals(array(
+		$this->assertSame(array(
 			'file' => NULL,
 		), $params);
+	}
+
+	// TYPE CASTING
+	
+	/**
+	 * @depends testClassExistsRegister
+	 */
+	public function testTypeCastSuccess(ActionMap $actionMap) {
+		$params = $actionMap->getActionParams('name', array(
+			'name' => 1337,
+		));
+		$this->assertSame(array(
+			'name' => '1337',
+		), $params);
+	}
+
+	/**
+	 * @depends testClassExistsRegister
+	 */
+	public function testNoTypeCast(ActionMap $actionMap) {
+		$params = $actionMap->getActionParams('lastname', array(
+			'lastname' => 1337,
+		));
+		$this->assertSame(array(
+			'lastname' => 1337,
+		), $params);
+	}
+
+
+	// PARAM INTERFACE
+
+	/**
+	 * @depends testClassExistsRegister
+	 */
+	public function testParamValid(ActionMap $actionMap) {
+		$params = $actionMap->getActionParams('submit', array(
+			'email' => 'mjac@mjac.co.uk',
+		));
+		
+		$this->assertInternalType('array', $params);
+		$this->assertArrayHasKey('email', $params);
+		$this->assertInstanceOf('ReflectionRouter\\EmailAddressExample', $params['email']);
+		$this->assertTrue($params['email']->isValid());
+	}
+
+	/**
+	 * @depends testClassExistsRegister
+	 */
+	public function testParamInvalid(ActionMap $actionMap) {
+		$params = $actionMap->getActionParams('submit', array(
+			'email' => 'notvalid',
+		));
+		
+		$this->assertNull($params);
+	}
+
+	/**
+	 * @depends testClassExistsRegister
+	 */
+	public function testParamNoDefault(ActionMap $actionMap) {
+		$params = $actionMap->getActionParams('submit');
+		$this->assertNull($params);
+	}
+
+	/**
+	 * @depends testClassExistsRegister
+	 */
+	public function testParamDefault(ActionMap $actionMap) {
+		$params = $actionMap->getActionParams('colorscheme');
+
+		$this->assertInternalType('array', $params);
+		$this->assertArrayHasKey('color', $params);
+		$this->assertInstanceOf('ReflectionRouter\\ColorSchemeExample', $params['color']);
+		$this->assertTrue($params['color']->isValid());
 	}
 }
