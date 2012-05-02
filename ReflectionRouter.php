@@ -2,32 +2,6 @@
 
 namespace ReflectionRouter;
 
-class Router {
-	private $namespace = '';
-
-	private $moduleParam;
-	private $actionParam;
-
-	public function __construct($moduleParam, $actionParam, $namespace = '') {
-		$this->moduleParam = $moduleParam;
-		$this->actionParam = $actionParam;
-		$this->namespace = $namespace;
-	}
-
-	public function dispatch(array $input) {
-		if (!isset($input[$this->moduleParam])) {
-			throw new ModuleNotSpecifiedException($this->moduleParam); 
-		}
-
-		if (!isset($input[$this->actionParam])) {
-			throw new ActionNotSpecifiedException($this->actionParam); 
-		}
-
-		$action = new Action($this->namespace);
-		return $action->perform($input[$this->moduleParam], $input[$this->actionParam], $input);
-	}
-}
-
 class Action {
 	private $namespace;
 
