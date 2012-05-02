@@ -22,6 +22,10 @@ class RegisterExample {
 	public function colorscheme(ColorSchemeExample $color) {
 		return $color;
 	}
+
+	private function validateinternal($secret) {
+
+	}
 }
 
 class EmailAddressExample implements ActionParam {

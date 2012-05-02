@@ -5,6 +5,7 @@ namespace ReflectionRouter;
 require_once '../ReflectionRouter.php';
 require_once 'RegisterExample.php';
 require_once 'MessageExample.php';
+require_once 'PrivateExample.php';
 
 class ActionMapTest extends \PHPUnit_Framework_TestCase {
 	public function testClassMissing() {
@@ -230,5 +231,23 @@ class ActionMapTest extends \PHPUnit_Framework_TestCase {
 		$this->assertArrayHasKey('color', $params);
 		$this->assertInstanceOf('ReflectionRouter\\ColorSchemeExample', $params['color']);
 		$this->assertTrue($params['color']->isValid());
+	}
+
+
+	// INACCESSIBLE METHODS
+
+	/**
+	 * @depends testClassExistsRegister
+	 */
+	public function testActionInaccessible(ActionMap $actionMap) {
+		$this->setExpectedException('ReflectionRouter\\ActionNotAccessibleException');
+		$actionMap->getActionParams('validateinternal');
+	}
+
+	public function testConstructorInaccessible() {
+		$actionMap = new ActionMap('ReflectionRouter\PrivateExample');
+
+		$this->setExpectedException('ReflectionRouter\\ActionNotAccessibleException');
+		$actionMap->getModuleParams();
 	}
 }

@@ -56,7 +56,12 @@ class ActionMap {
 	 * Using array_key_exists to allow for NULL input
 	 */
 	private function getMethodParams(\ReflectionMethod $reflectedMethod, $input) {
+		if (!$reflectedMethod->isPublic()) {
+			throw new ActionNotAccessibleException($reflectedMethod->class, $reflectedMethod->name);
+		}
+
 		$methodParams = array();
+
 		foreach ($reflectedMethod->getParameters() as $reflectedParam) {
 			$paramName = $reflectedParam->getName();
 			$hasDefault = $reflectedParam->isDefaultValueAvailable();
@@ -137,6 +142,12 @@ interface ActionParamExtended extends ActionParam {
 class Exception extends \Exception {
 	public function __construct($message, \Exception $e = NULL) {
 		parent::__construct($message, 0, $e);
+	}
+}
+
+class ActionNotAccessibleException extends Exception {
+	public function __construct($class, $method, \Exception $e = NULL) {
+		parent::__construct("Module is not visible, cannot execute $class::$method", $e);
 	}
 }
 
