@@ -142,25 +142,25 @@ class Exception extends \Exception {
 
 class ModuleNotFoundException extends Exception {
 	public function __construct($module, $targetClass, \Exception $e = NULL) {
-		parent::__construct("Module <$module> not found, attempted to load <$targetClass>", $e);
+		parent::__construct("Module <$module> not found, attempted to load $targetClass", $e);
 	}
 }
 
 class ActionNotFoundException extends Exception {
 	public function __construct($action, $module, $targetClass, \Exception $e = NULL) {
-		parent::__construct("Action <$action> not found in module <$module> with full reference <$targetClass>", $e);
+		parent::__construct("Action <$action> not found in module <$module> with full reference $targetClass", $e);
 	}
 }
 
 class ActionParamsIncorrectException extends Exception {
 	public function __construct($action, $module, $targetClass, \Exception $e = NULL) {
-		parent::__construct("Parameters are incorrect for action <$action> in module <$module> with full reference <$targetClass>", $e);
+		parent::__construct("Parameters are incorrect for action <$action> in module <$module> with full reference $targetClass", $e);
 	}
 }
 
 class ModuleParamsIncorrectException extends Exception {
 	public function __construct($module, $targetClass, \Exception $e = NULL) {
-		parent::__construct("Parameters are incorrect for module <$module> with full reference <$targetClass>", $e);
+		parent::__construct("Parameters are incorrect for module <$module> with full reference $targetClass", $e);
 	}
 }
 
