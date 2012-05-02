@@ -140,18 +140,6 @@ class Exception extends \Exception {
 	}
 }
 
-class ModuleNotSpecifiedException extends Exception {
-	public function __construct($moduleParam, \Exception $e = NULL) {
-		parent::__construct("Module was not provided in parameter <$moduleParam>", $e);
-	}
-}
-
-class ActionNotSpecifiedException extends Exception {
-	public function __construct($actionParam, \Exception $e = NULL) {
-		parent::__construct("Action was not provided in parameter <$actionParam>", $e);
-	}
-}
-
 class ModuleNotFoundException extends Exception {
 	public function __construct($module, $targetClass, \Exception $e = NULL) {
 		parent::__construct("Module <$module> not found, attempted to load <$targetClass>", $e);
