@@ -14,8 +14,8 @@ class Action {
 
 		try {
 			$actionMap = new ActionMap($targetClass);
-		} catch(\ReflectionException $e) {
-			throw new ModuleNotFoundException($module, $targetClass);
+		} catch (\ReflectionException $e) {
+			throw new ModuleNotFoundException($module, $targetClass, $e);
 		}
 
 		$constructorParams = $actionMap->getModuleParams($input);
@@ -26,13 +26,13 @@ class Action {
 		try {
 			$actionParams = $actionMap->getActionParams($action, $input);
 		} catch (\ReflectionException $e) {
-			throw new ActionNotFoundException($module, $action, $targetClass);
+			throw new ActionNotFoundException($module, $action, $targetClass, $e);
 		}
 
 		if ($actionParams === NULL) {
 			throw new ActionParamsIncorrectException($module, $action, $targetClass);
 		}
-		
+
 		$module = call_user_func_array( 
 			array( 
 				new \ReflectionClass($targetClass),
