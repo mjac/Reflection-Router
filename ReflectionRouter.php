@@ -158,13 +158,13 @@ class ModuleNotFoundException extends Exception {
 }
 
 class ActionNotFoundException extends Exception {
-	public function __construct($action, $module, $targetClass, \Exception $e = NULL) {
+	public function __construct($module, $action, $targetClass, \Exception $e = NULL) {
 		parent::__construct("Action <$action> not found in module <$module> with full reference $targetClass", $e);
 	}
 }
 
 class ActionParamsIncorrectException extends Exception {
-	public function __construct($action, $module, $targetClass, \Exception $e = NULL) {
+	public function __construct($module, $action, $targetClass, \Exception $e = NULL) {
 		parent::__construct("Parameters are incorrect for action <$action> in module <$module> with full reference $targetClass", $e);
 	}
 }
